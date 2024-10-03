@@ -49,10 +49,33 @@ impl<'a> Poap<'a> {
         hasher.finalize()
     }
 
+    // pub fn identifier_dashed(&self) -> String {
+    //     let stringified_hex = self.identifier().to_string();
+    //     let mut dashed_encoded = String::new();
+
+    //     stringified_hex
+    //         .chars()
+    //         .enumerate()
+    //         .for_each(|(index, char)| {
+    //             if index > 0 && index % 4 == 0 {
+    //                 dashed_encoded.push('-');
+    //             }
+    //             dashed_encoded.push(char);
+    //         });
+
+    //     dashed_encoded
+    // }
+
     pub fn validate(&self, hash_bytes: Blake3HashBytes) -> bool {
         let hash: blake3::Hash = hash_bytes.into();
         self.identifier() == hash
     }
+
+    // pub fn validate_dashed(&self, hash_dashed: &str) -> bool {
+    //     let decoded = hash_dashed.trim().replace("-", "");
+    //     let decoded = blake3::Hash::from_hex(&decoded).unwrap();
+    //     self.validate(*decoded.as_bytes())
+    // }
 
     pub fn recipient(&self) -> Blake3HashBytes {
         self.recipient

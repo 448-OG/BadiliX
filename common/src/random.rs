@@ -30,8 +30,8 @@ impl<const N: usize> RandomBytes<N> {
 
     /// Clone the data. Be careful with this as it retains the secret in memory.
     /// It is recommended to call `Csprng::zeroize()` after consuming this in order to zeroize the memory
-    pub fn expose_borrowed(&self) -> &[u8] {
-        self.0.as_ref()
+    pub fn expose_borrowed(&self) -> &[u8; N] {
+        &self.0
     }
 
     /// Get the inner value of the struct. This is only available in a debug build and
@@ -39,6 +39,10 @@ impl<const N: usize> RandomBytes<N> {
     #[cfg(debug_assertions)]
     pub fn dangerous_debug(&self) -> &[u8; N] {
         &self.0
+    }
+
+    pub fn from_bytes(byte_array: [u8; N]) -> Self {
+        RandomBytes(byte_array)
     }
 }
 

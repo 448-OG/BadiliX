@@ -9,3 +9,9 @@ pub use types::*;
 
 mod random;
 pub use random::*;
+
+mod utils;
+pub use utils::*;
+
+mod errors;
+pub use errors::*;
