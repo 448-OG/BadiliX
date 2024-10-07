@@ -1,12 +1,41 @@
 use solana_client::rpc_client::RpcClient;
-use solana_sdk::{instruction::Instruction, pubkey::Pubkey, system_instruction};
+use solana_sdk::{
+    instruction::Instruction, signer::keypair::Keypair, signer::Signer, system_instruction,
+};
 use spl_token_2022::{
     extension::ExtensionType, instruction::initialize_non_transferable_mint, state::Mint,
 };
 use spl_token_metadata_interface::state::TokenMetadata;
 use spl_type_length_value::variable_len_pack::VariableLenPack;
 
-pub fn create_poap_mint(client: &RpcClient, mintkeys: &MintKeys) -> Vec<Instruction> {
+use common::{MintKeys, MintMetadata, ProgramUtils, Tx, EVENTS_DB};
+
+pub(crate) fn create_poap_mint(authority: &Keypair, mint: &Keypair, client: &RpcClient) {
+    let mint_keys = MintKeys {
+        mint: mint.pubkey(),
+        authority: authority.pubkey(),
+        update_authority: authority.pubkey(),
+    };
+
+    EVENTS_DB
+        .insert("RADAR HACKATHON", &mint.pubkey().to_bytes())
+        .unwrap();
+
+    println!(
+        "Airdrop for Mint Authority Reflected: {}",
+        ProgramUtils::airdrop(&client, &authority.pubkey())
+    );
+
+    let poap_ixs = create_poap_mint_ixs(&client, &mint_keys);
+    let create_poap_mint_sig = Tx::new(&authority)
+        .add_instructions(poap_ixs)
+        .add_signers(&[&authority, &mint])
+        .send_tx(&client);
+
+    println!("POAP CREATE SIG: {:?}", create_poap_mint_sig);
+}
+
+pub fn create_poap_mint_ixs(client: &RpcClient, mintkeys: &MintKeys) -> Vec<Instruction> {
     let metadata_info = mint_metadata();
 
     let mut metadata = TokenMetadata {
@@ -110,20 +139,4 @@ fn mint_metadata() -> MintMetadata {
         uri: "https://www.colosseum.org/radar".to_string(),
         additional_metadata: ("about-us".to_string(), about_us.to_string()),
     }
-}
-
-#[derive(Debug)]
-pub struct MintKeys {
-    pub(crate) mint: Pubkey,
-    pub(crate) authority: Pubkey,
-    pub(crate) update_authority: Pubkey,
-}
-
-#[derive(Debug)]
-struct MintMetadata {
-    pub decimals: u8,
-    pub name: String,
-    pub symbol: String,
-    pub uri: String,
-    pub additional_metadata: (String, String),
 }

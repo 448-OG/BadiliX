@@ -14,3 +14,11 @@ tai64 = "4.0.0"
 bs58.workspace = true
 data-encoding = "2.6.0"
 solana-program.workspace = true
+solana-client.workspace = true
+solana-sdk.workspace = true
+spl-associated-token-account.workspace = true
+spl-token-2022.workspace = true
+sled = "0.34.7"
+smol = "2.0.2"
+serde = { version = "1.0.210", features = ["derive"] }
+toml = "0.8.19"

@@ -1,15 +1,11 @@
 [package]
-name = "server"
+name = "programs"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
-trillium = "=0.2.20"
-trillium-http = "=0.3.17"
-trillium-smol = "=0.4.2"
-percent-encoding.workspace = true
 common = { path = "../common" }
 solana-client.workspace = true
 solana-program.workspace = true
@@ -22,6 +18,3 @@ spl-type-length-value.workspace = true
 spl-token-2022.workspace = true
 spl-token.workspace = true
 spl-associated-token-account.workspace = true
-smol = "2.0.2"
-minreq = { version = "2.12.0", features = ["https-rustls"] }
-jzon = "0.12.5"

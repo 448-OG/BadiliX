@@ -1,8 +1,6 @@
 use solana_client::{rpc_client::RpcClient, rpc_config::RpcRequestAirdropConfig};
 use solana_sdk::{
-    commitment_config::{CommitmentConfig, CommitmentLevel},
-    native_token::LAMPORTS_PER_SOL,
-    pubkey::Pubkey,
+    commitment_config::CommitmentConfig, native_token::LAMPORTS_PER_SOL, pubkey::Pubkey,
 };
 
 pub struct ProgramUtils;

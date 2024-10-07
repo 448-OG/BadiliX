@@ -1,5 +1,5 @@
 [workspace]
-members = ["common", "server"]
+members = ["common", "programs", "server"]
 
 resolver = "2"
 
@@ -17,6 +17,14 @@ spl-token = "6.0.0"
 spl-token-2022 = "5.0.2"
 bs58 = "0.5.1"
 blake3 = { version = "1.5.1", default-features = false, features = ["digest"] }
+solana-client = "=2.0.11"
+solana-sdk = "=2.0.11"
+ed25519-dalek = "=1"
+spl-token-metadata-interface = "=0.5.1"
+spl-type-length-value = "=0.6.0"
+spl-associated-token-account = "=5.0.1"
+percent-encoding = "=2.3.1"
+
 
 [profile.release]
 overflow-checks = true
