@@ -1,0 +1,21 @@
+[package]
+name = "programs"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+common = { path = "../common" }
+solana-client.workspace = true
+solana-program.workspace = true
+solana-sdk.workspace = true
+bs58.workspace = true
+blake3.workspace = true
+ed25519-dalek.workspace = true
+spl-token-metadata-interface.workspace = true
+spl-type-length-value.workspace = true
+spl-token-2022.workspace = true
+spl-token.workspace = true
+spl-associated-token-account.workspace = true
+jzon.workspace = true
