@@ -1,1 +1,3 @@
 api_key = "<AFRICAS TALKING API KEY FOR SMS>"
+authority = "<base58 encoded authority keypair"
+mint = "<base58 encoded usd mint keypair"

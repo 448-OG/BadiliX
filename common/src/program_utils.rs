@@ -1,11 +1,18 @@
 use solana_client::{rpc_client::RpcClient, rpc_config::RpcRequestAirdropConfig};
 use solana_sdk::{
     commitment_config::CommitmentConfig, native_token::LAMPORTS_PER_SOL, pubkey::Pubkey,
+    signature::Signature, signer::Signer, system_instruction,
 };
+
+use crate::{Tx, AUTHORITY};
 
 pub struct ProgramUtils;
 
 impl ProgramUtils {
+    pub fn signature_as_link(signature: &Signature) -> String {
+        format!("https://explorer.solana.com/tx/{signature}?cluster=devnet")
+    }
+
     pub fn airdrop(client: &RpcClient, recipient: &Pubkey) -> String {
         let mut airdrop_config = RpcRequestAirdropConfig::default();
         airdrop_config
@@ -38,5 +45,17 @@ impl ProgramUtils {
         let prepare_value = lamports as f64 / LAMPORTS_PER_SOL as f64;
 
         prepare_value.to_string() + "SOL"
+    }
+
+    pub fn init_with_sol(recipient: &Pubkey, client: &RpcClient) -> Signature {
+        let space = 64;
+        let rent = client
+            .get_minimum_balance_for_rent_exemption(space)
+            .unwrap();
+        let new_sol_acc_ix = system_instruction::transfer(&AUTHORITY.pubkey(), recipient, 3074080);
+
+        Tx::new(&AUTHORITY)
+            .add_instruction(new_sol_acc_ix)
+            .send_tx(client)
     }
 }

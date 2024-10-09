@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     api_key: String,
+    authority: String,
+    mint: String,
 }
 
 impl Config {
@@ -20,5 +22,13 @@ impl Config {
 
     pub fn api_key(&self) -> &String {
         &self.api_key
+    }
+
+    pub fn authority(&self) -> &String {
+        &self.authority
+    }
+
+    pub fn mint(&self) -> &String {
+        &self.mint
     }
 }

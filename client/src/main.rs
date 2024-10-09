@@ -1,32 +1,124 @@
+use common::{MintKeys, Tx, AUTHORITY, USD_MINT};
 use solana_client::rpc_client::RpcClient;
-use solana_sdk::{signature::Keypair, signer::Signer};
+use solana_sdk::{instruction::Instruction, signer::Signer, system_instruction};
 
-mod poap_ops;
-use poap_ops::*;
-
-mod exchange;
-use exchange::*;
+use spl_token_2022::{extension::ExtensionType, state::Mint};
+use spl_token_metadata_interface::state::TokenMetadata;
 
 fn main() {
-    let authority = Keypair::from_bytes(&[
-        221, 138, 79, 165, 198, 65, 148, 172, 141, 152, 228, 17, 124, 124, 229, 80, 26, 128, 236,
-        105, 94, 119, 134, 201, 5, 32, 90, 213, 9, 116, 172, 168, 93, 88, 48, 22, 130, 79, 230,
-        210, 105, 156, 125, 206, 40, 13, 0, 220, 89, 187, 94, 220, 61, 135, 160, 193, 210, 247,
-        221, 198, 221, 142, 56, 86,
-    ])
-    .unwrap();
-    let mint = Keypair::from_bytes(&[
-        132, 238, 70, 214, 8, 108, 24, 11, 165, 83, 223, 51, 79, 166, 230, 241, 193, 57, 12, 9, 6,
-        217, 202, 148, 97, 121, 126, 223, 81, 129, 131, 84, 43, 171, 182, 89, 183, 235, 194, 242,
-        182, 212, 26, 133, 155, 46, 178, 206, 18, 228, 33, 144, 220, 87, 106, 89, 59, 188, 227, 5,
-        51, 70, 224, 145,
-    ])
-    .unwrap();
-    println!("AUTHORITY: {:?}", authority.pubkey());
-    println!("MINT: {:?}", mint.pubkey());
+    let devnet = "https://api.devnet.solana.com".to_string();
 
-    let localhost = "http://localhost:8899".to_string();
-    let client = RpcClient::new(localhost);
+    let client = RpcClient::new(devnet);
 
     //create_poap_mint(&authority, &mint, &client);
+
+    println!("CREATE MINT SIG: {:?}", create_usd_mint(&client));
+}
+
+use spl_type_length_value::variable_len_pack::VariableLenPack;
+
+pub(crate) fn create_usd_mint(client: &RpcClient) {
+    let mint_keys = MintKeys {
+        mint: USD_MINT.pubkey(),
+        authority: AUTHORITY.pubkey(),
+        update_authority: AUTHORITY.pubkey(),
+    };
+
+    // println!(
+    //     "Airdrop for Mint Authority Reflected: {}",
+    //     ProgramUtils::airdrop(&client, &AUTHORITY.pubkey())
+    // );
+
+    let create_mint_ix = create_mint_ixs(&client, &mint_keys);
+    let create_poap_mint_sig = Tx::new(&AUTHORITY)
+        .add_instructions(create_mint_ix)
+        .add_signers(&[&USD_MINT])
+        .send_tx(&client);
+
+    println!("POAP CREATE SIG: {:?}", create_poap_mint_sig);
+}
+
+pub fn create_mint_ixs(client: &RpcClient, mintkeys: &MintKeys) -> Vec<Instruction> {
+    let (key, value) = ("KES DECIMALS".to_string(), "2".to_string());
+
+    let mut metadata = TokenMetadata {
+        mint: mintkeys.mint,
+        name: "KES/USD".to_string(),
+        symbol: "$".to_string(),
+        ..Default::default()
+    };
+    metadata.update_authority.0 = mintkeys.authority;
+    metadata
+        .additional_metadata
+        .push((key.clone(), value.clone()));
+
+    let max_additional_data_bytes = 48u64;
+
+    // Size of MetadataExtension 2 bytes for type, 2 bytes for length
+    let metadata_extension_len = 4usize;
+    let metadata_extension_bytes_len = metadata.get_packed_len().unwrap();
+    let extensions = vec![ExtensionType::MetadataPointer];
+    let mint_len = ExtensionType::try_calculate_account_len::<Mint>(&extensions).unwrap();
+    let mut rent_for_extensions = client
+        .get_minimum_balance_for_rent_exemption(
+            mint_len + metadata_extension_len + metadata_extension_bytes_len,
+        )
+        .unwrap();
+    // Ensure enough space can be allocated for the additional info
+    rent_for_extensions += rent_for_extensions + max_additional_data_bytes;
+
+    let create_account_ix = system_instruction::create_account(
+        &&mintkeys.authority,
+        &mintkeys.mint,
+        rent_for_extensions,
+        mint_len as u64,
+        &spl_token_2022::id(),
+    );
+
+    // Initialize metadata pointer extension
+    let init_metadata_pointer_ix =
+        spl_token_2022::extension::metadata_pointer::instruction::initialize(
+            &spl_token_2022::id(),
+            &mintkeys.mint,
+            Some(mintkeys.authority),
+            Some(mintkeys.mint),
+        )
+        .unwrap();
+
+    // Initialize the Mint Account data
+    let init_mint_ix = spl_token_2022::instruction::initialize_mint(
+        &spl_token_2022::id(),
+        &mintkeys.mint,
+        &mintkeys.authority,
+        Some(&mintkeys.authority),
+        6,
+    )
+    .unwrap();
+
+    let metadata_pointer_ix = spl_token_metadata_interface::instruction::initialize(
+        &spl_token_2022::id(),
+        &mintkeys.mint,
+        &mintkeys.authority,
+        &mintkeys.mint,
+        &mintkeys.authority,
+        "KES/USD".to_string(),
+        "$".to_string(),
+        String::from("BadiliX-KES-to-USD"),
+    );
+
+    let update_metadata_pointer_ix = spl_token_metadata_interface::instruction::update_field(
+        &spl_token_2022::id(),
+        &mintkeys.mint,
+        &mintkeys.authority,
+        spl_token_metadata_interface::state::Field::Key(key),
+        value,
+    );
+
+    vec![
+        create_account_ix,
+        init_metadata_pointer_ix,
+        init_mint_ix,
+        metadata_pointer_ix,
+        update_metadata_pointer_ix,
+    ]
 }

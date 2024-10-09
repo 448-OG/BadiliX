@@ -1,5 +1,5 @@
 [workspace]
-members = ["common", "programs", "server"]
+members = ["common", "client", "server", "exchange_program"]
 
 resolver = "2"
 
@@ -24,7 +24,7 @@ spl-token-metadata-interface = "=0.5.1"
 spl-type-length-value = "=0.6.0"
 spl-associated-token-account = "=5.0.1"
 percent-encoding = "=2.3.1"
-
+jzon = "0.12.5"
 
 [profile.release]
 overflow-checks = true
