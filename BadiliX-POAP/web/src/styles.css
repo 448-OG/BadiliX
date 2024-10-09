@@ -11,6 +11,8 @@ body,
     Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 }
 
+body {background: #000000;}
+
 h2,body,p {  color: #ffffff !important;
 }
 
