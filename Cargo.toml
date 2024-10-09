@@ -1,5 +1,5 @@
 [workspace]
-members = ["common", "client", "server", "exchange_program"]
+members = ["common", "client", "server"]
 
 resolver = "2"
 
